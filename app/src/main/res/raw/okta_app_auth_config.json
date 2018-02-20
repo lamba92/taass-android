@@ -1,0 +1,9 @@
+{
+  "client_id": "0oae2nbfmrdlIfHOM0h7",
+  "redirect_uri": "com.oktapreview.dev-928137:/callback",
+  "scopes": [
+    "openid",
+    "profile"
+  ],
+  "issuer_uri": "https://dev-928137.oktapreview.com/oauth2/default"
+}
