@@ -1,69 +1,67 @@
-package it.projector.lamba.projector
+package it.projector.lamba.projector.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.okta.appauth.android.OktaAppAuth
+import it.projector.lamba.projector.BackendService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import it.projector.lamba.projector.R
+import it.projector.lamba.projector.R.id.drawer_layout
+import kotlinx.android.synthetic.main.nav_header_main.*
 import net.openid.appauth.AuthorizationException
-import android.app.PendingIntent
-import android.content.Intent
-import android.view.View
-import it.projector.lamba.projector.R.id.cool_button
-import kotlinx.android.synthetic.main.content_main.*
-import java.io.InputStream
+import org.json.JSONObject
 import java.lang.Exception
-import java.net.HttpURLConnection
-import java.net.URL
-
-
-const val OKTA_REQUEST_CODE = 777
-const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var mOktaAuth: OktaAppAuth
-    private lateinit var backendService: BackendService
+    val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mOktaAuth = OktaAppAuth.getInstance(this)
-        mOktaAuth.init(this,
-                object : OktaAppAuth.OktaAuthListener {
-                    override fun onSuccess() {
-                        val login = mOktaAuth.isUserLoggedIn
-                        if (!login) {
-                            val completionIntent = Intent(this@MainActivity, MainActivity::class.java)
-                            val cancelIntent = Intent(this@MainActivity, MainActivity::class.java)
-                            cancelIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-
-                            mOktaAuth.login(this@MainActivity,
-                                    PendingIntent.getActivity(this@MainActivity, OKTA_REQUEST_CODE, completionIntent, 0),
-                                    PendingIntent.getActivity(this@MainActivity, OKTA_REQUEST_CODE, cancelIntent, 0)
-                            )
-                        }
-                    }
-
-                    override fun onTokenFailure(ex: AuthorizationException) {
-                        this@MainActivity.finishAndRemoveTask()
-                    }
-                })
+        val mOktaAuth = OktaAppAuth.getInstance(this)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
         val toggle = ActionBarDrawerToggle(
-                this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+                this@MainActivity, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
 
-        nav_view.setNavigationItemSelectedListener(this)
+        nav_view.setNavigationItemSelectedListener(this@MainActivity)
+        mOktaAuth.init(this,
+                object : OktaAppAuth.OktaAuthListener {
+                    override fun onSuccess() {
+                        mOktaAuth.refreshAccessToken(object : OktaAppAuth.OktaAuthListener {
+                            @SuppressLint("SetTextI18n")
+                            override fun onSuccess() {
+                                Log.d(TAG, "refreshAccessToken onSuccess called")
+                                BackendService.init(mOktaAuth)
+                                BackendService.getCurrentUser(onSuccess = {
+                                    nav_header_name.text = "${it.name} ${it.surname}"
+                                    nav_header_email.text = it.email
+                                }, onFailure = {p0, p1 ->
 
+                                })
+                            }
 
+                            override fun onTokenFailure(p0: AuthorizationException) {
+                                Log.e(TAG, p0.error)
+                            }
+
+                        })
+                    }
+                    override fun onTokenFailure(ex: AuthorizationException) {
+                        Log.d(TAG, ex.error)
+                    }
+                }
+        )
+        super.onCreate(savedInstanceState)
     }
 
     override fun onBackPressed() {
@@ -94,7 +92,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle navigation view item clicks here.
         when (item.itemId) {
             R.id.nav_exit -> {
-                finishAndRemoveTask()
             }
         }
 

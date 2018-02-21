@@ -3,7 +3,8 @@
   "redirect_uri": "com.oktapreview.dev-928137:/callback",
   "scopes": [
     "openid",
-    "profile"
+    "profile",
+    "offline_access"
   ],
   "issuer_uri": "https://dev-928137.oktapreview.com/oauth2/default"
 }
