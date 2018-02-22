@@ -31,6 +31,7 @@ class ResourcesAdapter(private val items: ArrayList<Resource> = ArrayList()): Re
 
         private fun iconProvider(icon: String): Int {
             return when(icon){
+                "presentation" -> R.drawable.ic_presentation
                 "bitbucket" -> R.drawable.ic_bitbucket_black_24dp
                 "git"  -> R.drawable.ic_git_black_24dp
                 "github" -> R.drawable.ic_github_black_24dp
