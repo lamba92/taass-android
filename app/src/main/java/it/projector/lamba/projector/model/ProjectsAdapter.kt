@@ -1,5 +1,8 @@
 package it.projector.lamba.projector.model
 
+import android.app.Activity
+import android.content.Context
+import android.support.annotation.UiThread
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
@@ -13,39 +16,52 @@ import kotlinx.android.synthetic.main.project_card.view.*
 /**
  * Created by lamba on 21/02/2018.
  */
-class ProjectsAdapter(private val items: ArrayList<Project> = ArrayList()): RecyclerView.Adapter<ProjectsAdapter.ProjectViewHolder>() {
+class ProjectsAdapter(private val items: ArrayList<Project> = ArrayList(), private val activity: Activity): RecyclerView.Adapter<ProjectsAdapter.ProjectViewHolder>() {
+
+    var dummyRemoved = false
 
     fun add(p: Project) {
+        if(!dummyRemoved){
+            items.clear()
+        }
         items.add(p)
-        notifyItemInserted(items.size - 1)
+        notifyDataSetChanged()
     }
 
     fun add(p: List<Project>){
-        val positionStart = items.size
+        if(!dummyRemoved){
+            items.clear()
+        }
         items.addAll(p)
-        notifyItemRangeInserted(positionStart, items.size - 1)
+        notifyDataSetChanged()
     }
 
     class ProjectViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
-        fun bind(p: Project){
+        fun bind(p: Project, a: Activity){
             itemView.card_project_title.text = p.title
             itemView.card_project_description.text = p.description
             getStudentsNames(p.ownersIds, {
-                itemView.card_project_students.text = it
+                a.runOnUiThread {
+                    itemView.card_project_students.text = it
+                }
             })
             getPresentationsAdapter(p.keynotesIds, {
-                itemView.card_project_presentations.adapter = it
+                a.runOnUiThread {
+                    itemView.card_project_presentations.adapter = it
+                }
             })
             getRepositoriesAdapter(p.reposIds, {
-                itemView.card_project_presentations.adapter = it
+                a.runOnUiThread {
+                    itemView.card_project_repositories.adapter = it
+                }
             })
 
         }
 
-        private fun getStudentsNames(list: List<String>, callback: (users: String) -> Unit) {
+        private fun getStudentsNames(list: List<String>?, callback: (users: String) -> Unit) {
             var toReturn = ""
             var i = 0
-            list.forEach({
+            list?.forEach({
                 BackendService.getUser(it, onSuccess = {
                     synchronized(toReturn, {
                         toReturn+= "${it.name} ${it.surname} (${it.badgeNumber}); "
@@ -66,9 +82,9 @@ class ProjectsAdapter(private val items: ArrayList<Project> = ArrayList()): Recy
 
         }
 
-        private fun getPresentationsAdapter(list: List<Long>, callback: (resources: ResourcesAdapter) -> Unit) {
+        private fun getPresentationsAdapter(list: List<Long>?, callback: (resources: ResourcesAdapter) -> Unit) {
             val ad = ResourcesAdapter()
-            list.forEach({
+            list?.forEach({
                 BackendService.getKeynote(it, {
                     ad.add(it)
                 }, {p0, p1 ->
@@ -78,9 +94,9 @@ class ProjectsAdapter(private val items: ArrayList<Project> = ArrayList()): Recy
             callback(ad)
         }
 
-        private fun getRepositoriesAdapter(list: List<Long>, callback: (resources: ResourcesAdapter) -> Unit) {
+        private fun getRepositoriesAdapter(list: List<Long>?, callback: (resources: ResourcesAdapter) -> Unit) {
             val ad = ResourcesAdapter()
-            list.forEach({
+            list?.forEach({
                 BackendService.getRepositoriy(it, {
                     ad.add(it)
                 }, {p0, p1 ->
@@ -95,7 +111,7 @@ class ProjectsAdapter(private val items: ArrayList<Project> = ArrayList()): Recy
 
     override fun getItemCount() = items.size
 
-    override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) = holder.bind(items[position])
+    override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) = holder.bind(items[position], activity)
 
 
 }

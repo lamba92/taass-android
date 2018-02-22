@@ -17,8 +17,10 @@ class ResourcesAdapter(private val items: ArrayList<Resource> = ArrayList()): Re
 
     fun add(r: Resource) {
         items.add(r)
-        notifyItemInserted(items.size-1)
+        notifyDataSetChanged()
     }
+
+    fun size() = items.size
 
     class ResourceViewHolder(itemView: View?) : RecyclerView.ViewHolder(itemView) {
         fun bind(r: Resource) {

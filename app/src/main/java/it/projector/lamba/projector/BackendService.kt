@@ -1,23 +1,17 @@
 package it.projector.lamba.projector
 
-import android.support.v7.widget.RecyclerView
 import android.util.Log
-import com.beust.klaxon.Klaxon
-import com.beust.klaxon.PathMatcher
 import com.okta.appauth.android.OktaAppAuth
 import it.projector.lamba.projector.data.Project
 import it.projector.lamba.projector.data.Resource
 import it.projector.lamba.projector.data.User
-import it.projector.lamba.projector.model.ResourcesAdapter
 import net.openid.appauth.AuthorizationException
 import org.apache.commons.io.IOUtils
-import org.greenrobot.eventbus.EventBus
 import org.json.JSONObject
 import java.io.InputStream
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.regex.Pattern
 
 /**
  * Created by lamba on 20/02/2018.
@@ -147,7 +141,7 @@ class BackendService private constructor(){
             mOktaAppAuth.performAuthorizedRequest( object : OktaAppAuth.BearerAuthRequest{
                 override fun onSuccess(p0: InputStream) {
                     val json = IOUtils.toString(p0, "UTF-8")
-                    Log.d(TAG, "User JSON with id $id is:\n$json")
+                    Log.d(TAG, "$type JSON with id $id is:\n$json")
                     onSuccess(parseResource(JSONObject(json), id))
                 }
 
