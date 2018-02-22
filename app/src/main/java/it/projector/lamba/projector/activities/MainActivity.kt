@@ -14,20 +14,21 @@ import it.projector.lamba.projector.BackendService
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 import it.projector.lamba.projector.R
-import it.projector.lamba.projector.R.id.drawer_layout
+import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.nav_header_main.*
 import net.openid.appauth.AuthorizationException
-import org.json.JSONObject
-import java.lang.Exception
+import it.projector.lamba.projector.model.ProjectsAdapter
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     val TAG = "MainActivity"
+    private val projectsAdapter = ProjectsAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val mOktaAuth = OktaAppAuth.getInstance(this)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        projects_rv.adapter = projectsAdapter
         val toggle = ActionBarDrawerToggle(
                 this@MainActivity, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
@@ -45,9 +46,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                                 BackendService.getCurrentUser(onSuccess = {
                                     nav_header_name.text = "${it.name} ${it.surname}"
                                     nav_header_email.text = it.email
-                                }, onFailure = {p0, p1 ->
-
-                                })
+                                }, onFailure = {p0, p1 ->})
+                                BackendService.getProjectsByTitle("", {
+                                    projectsAdapter.add(it)
+                                }, {p0, p1 ->})
                             }
 
                             override fun onTokenFailure(p0: AuthorizationException) {
